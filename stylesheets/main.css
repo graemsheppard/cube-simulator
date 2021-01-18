@@ -30,10 +30,23 @@ body {
     border: 1px solid  #aaaaaa;
 }
 
-.graph > small {
+.graph > span {
     color: #808080;
     position: absolute;
+}
+
+.graph > .graph-title {
     bottom: 8px;
+    left: 8px;
+}
+
+.graph > .axis-title-a {
+    bottom: 8px;
+    right: 8px;
+}
+
+.graph > .axis-title-b {
+    top: 8px;
     left: 8px;
 }
 
