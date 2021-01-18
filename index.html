@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>Code Quest</title>
+        <link rel="stylesheet" href="stylesheets/main.css" type="text/css"/>
+        <script src="scripts/vector.js", type="text/javascript" defer></script>
+        <script src="scripts/cube.js", type="text/javascript" defer></script>
+        <script src="scripts/camera.js", type="text/javascript" defer></script>
+        <script src="scripts/main.js", type="text/javascript" defer></script>
+    </head>
+    <body>
+        <div class="container">
+            <div class="canvas-bar">
+                <div class="graph">
+                    <small>Front</small>
+                    <canvas id="cvs-xy" height="200" width="200"></canvas>
+                </div>
+                <div class="graph">
+                    <small>Top</small>
+                    <canvas id="cvs-xz" height="200" width="200"></canvas>
+                </div>
+                <div class="graph">
+                    <small>Right</small>
+                    <canvas id="cvs-yz" height="200" width="200"></canvas>
+                </div>
+                <form class="inputs">
+					<div class="input-container-container">
+						<div class="input-container">
+							<span>Camera Offset X:</span><br/>
+							<div class="slidecontainer">
+								<input type="range" min="-250" max="250" value="0" class="slider" id="camera-offset-x">
+							</div>
+							<span>Camera Offset Y:</span><br/>
+							<div class="slidecontainer">
+								<input type="range" min="-250" max="250" value="0" class="slider" id="camera-offset-y">
+							</div>
+							<span>Camera Offset Z:</span><br/>
+							<div class="slidecontainer">
+								<input type="range" min="125" max="1000" value="250" class="slider" id="camera-offset-z">
+							</div>
+						</div>
+					</div>
+					<div class="input-container-container">
+						<div class="input-container">
+							<input type="checkbox" id="draw-vertices" checked/>
+							<span>Draw Vertices</span><br/>
+							<input type="checkbox" id="draw-edges" checked/>
+							<span>Draw Edges</span><br/>
+							<input type="checkbox" id="draw-faces" checked/>
+							<span>Draw Faces</span><br/>
+						</div>
+					</div>
+                    
+                    
+                </form>
+            </div>
+            <div class="main-canvas">
+                <canvas id="cvs-p" height="576" width="1024"></canvas>
+            </div>
+        </div>
+        
+        
+        
+        
+    </body>
+</html>
