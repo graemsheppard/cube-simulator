@@ -1,6 +1,7 @@
 console.log("Main Loaded!");
-var cube = new Cube(100, new Vector(0, 0, 0));
-var perspectiveCube = new Cube(100, new Vector(0,0,0));
+
+var cube1 = new Cube(100, new Vector(0, 0, 0));
+var cube2 = new Cube(25, new Vector(100, 50, 75));
 var camera = new Camera(new Vector(0, 0, 250), 500);
 
 var drawVertices = true;
@@ -55,9 +56,12 @@ setInterval(update, 1000 / 60);
 
 function update() {
     draw();
-    cube.rotateY(0.25 * Math.PI / 180);
-    cube.rotateX(0.25 * Math.PI / 180);
-    cube.rotateZ(0.25 * Math.PI / 180);
+    cube1.rotateY(2.5 * Math.PI / 180);
+    cube1.rotateX(1 * Math.PI / 180);
+    cube1.rotateZ(0.25 * Math.PI / 180);
+    cube2.rotateY(0.1 * Math.PI / 180);
+    cube2.rotateX(0.5 * Math.PI / 180);
+    cube2.rotateZ(3 * Math.PI / 180);
 }
 
 function draw() {
@@ -66,11 +70,13 @@ function draw() {
     ctxXZ.clearRect(0, 0, cvsXZ.width, cvsXZ.height);
     ctxYZ.clearRect(0, 0, cvsYZ.width, cvsYZ.height);
     ctxP.clearRect(0, 0, cvsP.width, cvsP.height);
-    
-    
-    cube.points.forEach(point => {
-        
-    });
+
+    // draw gradient
+    var grd = ctxP.createLinearGradient(0, 0, 0, cvsP.width);
+    grd.addColorStop(0.25, "white");
+    grd.addColorStop(1, "#505060");
+    ctxP.fillStyle = grd;
+    ctxP.fillRect(0, 0, cvsP.width, cvsP.height);
 
     params = {
         "drawVertices": drawVertices,
@@ -78,11 +84,15 @@ function draw() {
         "drawFaces": drawFaces
     };
 
-    cube.drawOrthographic(ctxXY, cvsXY, "x", "y", params);
-    cube.drawOrthographic(ctxXZ, cvsXZ, "x", "z", params);
-    cube.drawOrthographic(ctxYZ, cvsYZ, "z", "y", params);
+    cube1.drawOrthographic(ctxXY, cvsXY, "x", "y", params);
+    cube1.drawOrthographic(ctxXZ, cvsXZ, "x", "z", params);
+    cube1.drawOrthographic(ctxYZ, cvsYZ, "z", "y", params);
+    cube1.drawPerspective(ctxP, cvsP, camera, "x", "y", params);
+    cube2.drawOrthographic(ctxXY, cvsXY, "x", "y", params);
+    cube2.drawOrthographic(ctxXZ, cvsXZ, "x", "z", params);
+    cube2.drawOrthographic(ctxYZ, cvsYZ, "z", "y", params);
+    cube2.drawPerspective(ctxP, cvsP, camera, "x", "y", params);
 
-    cube.drawPerspective(ctxP, cvsP, camera, "x", "y", params);
 
 
 

@@ -51,5 +51,23 @@ class Vector {
         return result;
     }
 
+    rotateY (theta) {
+        let newX = Math.cos(theta) * this.x + Math.sin(theta) * this.z;
+        let newZ = -Math.sin(theta) * this.x + Math.cos(theta) * this.z;
+        return new Vector(newX, this.y, newZ);
+    }
+
+    rotateX (theta) {
+        let newY = Math.cos(theta) * this.y - Math.sin(theta) * this.z;
+        let newZ = Math.sin(theta) * this.y + Math.cos(theta) * this.z;
+        return new Vector(this.x, newY, newZ);
+    }
+
+    rotateZ (theta) {
+        let newX = Math.cos(theta) * this.x - Math.sin(theta) * this.y;
+        let newY = Math.sin(theta) * this.x + Math.cos(theta) * this.y;
+        return new Vector(newX, newY, this.z);
+    }
+
 
 }

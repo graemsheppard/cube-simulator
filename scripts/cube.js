@@ -6,90 +6,77 @@ class Cube {
         this.position = p;
         this.width = w;
         this.validDistance = Math.sqrt(3 * Math.pow(this.width / 2, 2));
+        this.forward = new Vector(0, 0, 1);
+        this.up = new Vector(0, 1, 0);
+        this.left = new Vector(1, 0, 0); // relative to forward
 
-        this.points = [
-            // front points
-            new Vector (p.x - w/2, p.y - w/2,  p.z + w/2),  // bottom left
-            new Vector (p.x + w/2, p.y - w/2,  p.z + w/2),  // bottom right
-            new Vector (p.x - w/2, p.y + w/2,  p.z + w/2),  // top left
-            new Vector (p.x + w/2, p.y + w/2,  p.z + w/2),  // top right
-            // back points
-            new Vector (p.x - w/2, p.y - w/2,  p.z - w/2),  // bottom left
-            new Vector (p.x + w/2, p.y - w/2,  p.z - w/2),  // bottom right
-            new Vector (p.x - w/2, p.y + w/2,  p.z - w/2),  // top left
-            new Vector (p.x + w/2, p.y + w/2,  p.z - w/2)  // top right
-        ]
 
     }
 
     rotateY (theta) {
-        //this.rotationY += theta;
-        this.points.forEach((point, key) => {
-            point = point.subtract(this.position);
-            point.x = Math.cos(theta) * point.x + Math.sin(theta) * point.z;
-            point.z = -Math.sin(theta) * point.x + Math.cos(theta) * point.z;
-            point = point.add(this.position);
-            this.points[key] = point;
-        });
-        this._validatePoints();
+        this.forward = this.forward.rotateY(theta).norm();
+        this.up = this.up.rotateY(theta).norm();
+        this.left = this.left.rotateY(theta).norm();
     }
 
     rotateX (theta) {
-        //this.rotationY += theta;
-        this.points.forEach((point, key) => {
-            point = point.subtract(this.position);
-            point.y = Math.cos(theta) * point.y - Math.sin(theta) * point.z;
-            point.z = Math.sin(theta) * point.y + Math.cos(theta) * point.z;
-            point = point.add(this.position);
-            this.points[key] = point;
-        });
-        this._validatePoints();
+        this.forward = this.forward.rotateX(theta).norm();
+        this.up = this.up.rotateX(theta).norm();
+        this.left = this.left.rotateX(theta).norm();
     }
 
     rotateZ (theta) {
-        //this.rotationY += theta;
-        this.points.forEach((point, key) => {
-            point = point.subtract(this.position);
-            point.x = Math.cos(theta) * point.x - Math.sin(theta) * point.y;
-            point.y = Math.sin(theta) * point.x + Math.cos(theta) * point.y;
-            point = point.add(this.position);
-            this.points[key] = point;
-        });
-        this._validatePoints();
+        this.forward = this.forward.rotateZ(theta).norm();
+        this.up = this.up.rotateZ(theta).norm();
+        this.left = this.left.rotateZ(theta).norm();
     }
 
-    _validatePoints() {
-        this.points.forEach((point, key) => {
-            let norm = point.subtract(this.position).norm();
-            point = norm.multiply(this.validDistance);
-            this.points[key] = point;
+    _getPoints () {
+        let points = [
+            // front points
+            this.position.add(this.forward.multiply(this.width/2))
+                         .add(this.left.multiply(-this.width/2))
+                         .add(this.up.multiply(-this.width/2)),
+            this.position.add(this.forward.multiply(this.width/2))
+                         .add(this.left.multiply(this.width/2))
+                         .add(this.up.multiply(-this.width/2)),
+            this.position.add(this.forward.multiply(this.width/2))
+                         .add(this.left.multiply(-this.width/2))
+                         .add(this.up.multiply(this.width/2)),
+            this.position.add(this.forward.multiply(this.width/2))
+                         .add(this.left.multiply(this.width/2))
+                         .add(this.up.multiply(this.width/2)),
 
-        });
+            // back points
+            this.position.add(this.forward.multiply(-this.width/2))
+                         .add(this.left.multiply(-this.width/2))
+                         .add(this.up.multiply(-this.width/2)),
+            this.position.add(this.forward.multiply(-this.width/2))
+                         .add(this.left.multiply(this.width/2))
+                         .add(this.up.multiply(-this.width/2)),
+            this.position.add(this.forward.multiply(-this.width/2))
+                         .add(this.left.multiply(-this.width/2))
+                         .add(this.up.multiply(this.width/2)),
+            this.position.add(this.forward.multiply(-this.width/2))
+                         .add(this.left.multiply(this.width/2))
+                         .add(this.up.multiply(this.width/2)),
+        ];
+        return points;
     }
 
     // takes 4 corners and return the normal to the contained surface
     _getFaceNorm(points) {
-        /*
-        let total = new Vector(0,0,0);
-        points.forEach((point) => {
-            total = total.add(point);
-        });
-        let direction = total.subtract(this.position);
-        return direction.norm();
-        */
        let v1 = points[2].subtract(points[0]);
        let v2 = points[1].subtract(points[0]);
-
        let n = v2.cross(v1);
-
        return n.norm();
 
     }
 
     drawOrthographic(ctx, cvs, axisA, axisB, params) {
-
+        let points = this._getPoints();
         if (params.drawVertices)
-        this.points.forEach(point => {
+        points.forEach(point => {
             ctx.beginPath();
             ctx.arc(cvs.width / 2 + point[axisA], cvs.height / 2 + point[axisB], 4, 0, 2 * Math.PI);
             ctx.fill();
@@ -97,22 +84,22 @@ class Cube {
 
         if (params.drawEdges) {
             ctx.beginPath();
-            ctx.moveTo(cvs.width / 2 + this.points[0][axisA], cvs.height / 2 + this.points[0][axisB]);
-            ctx.lineTo(cvs.width / 2 + this.points[1][axisA], cvs.height / 2 + this.points[1][axisB]);
-            ctx.lineTo(cvs.width / 2 + this.points[3][axisA], cvs.height / 2 + this.points[3][axisB]);
-            ctx.lineTo(cvs.width / 2 + this.points[2][axisA], cvs.height / 2 + this.points[2][axisB]);
-            ctx.lineTo(cvs.width / 2 + this.points[0][axisA], cvs.height / 2 + this.points[0][axisB]);
-            ctx.lineTo(cvs.width / 2 + this.points[4][axisA], cvs.height / 2 + this.points[4][axisB]);
-            ctx.lineTo(cvs.width / 2 + this.points[5][axisA], cvs.height / 2 + this.points[5][axisB]);
-            ctx.lineTo(cvs.width / 2 + this.points[7][axisA], cvs.height / 2 + this.points[7][axisB]);
-            ctx.lineTo(cvs.width / 2 + this.points[6][axisA], cvs.height / 2 + this.points[6][axisB]);
-            ctx.lineTo(cvs.width / 2 + this.points[4][axisA], cvs.height / 2 + this.points[4][axisB]);
-            ctx.moveTo(cvs.width / 2 + this.points[5][axisA], cvs.height / 2 + this.points[5][axisB]);
-            ctx.lineTo(cvs.width / 2 + this.points[1][axisA], cvs.height / 2 + this.points[1][axisB]);
-            ctx.moveTo(cvs.width / 2 + this.points[6][axisA], cvs.height / 2 + this.points[6][axisB]);
-            ctx.lineTo(cvs.width / 2 + this.points[2][axisA], cvs.height / 2 + this.points[2][axisB]);
-            ctx.moveTo(cvs.width / 2 + this.points[7][axisA], cvs.height / 2 + this.points[7][axisB]);
-            ctx.lineTo(cvs.width / 2 + this.points[3][axisA], cvs.height / 2 + this.points[3][axisB]);
+            ctx.moveTo(cvs.width / 2 + points[0][axisA], cvs.height / 2 + points[0][axisB]);
+            ctx.lineTo(cvs.width / 2 + points[1][axisA], cvs.height / 2 + points[1][axisB]);
+            ctx.lineTo(cvs.width / 2 + points[3][axisA], cvs.height / 2 + points[3][axisB]);
+            ctx.lineTo(cvs.width / 2 + points[2][axisA], cvs.height / 2 + points[2][axisB]);
+            ctx.lineTo(cvs.width / 2 + points[0][axisA], cvs.height / 2 + points[0][axisB]);
+            ctx.lineTo(cvs.width / 2 + points[4][axisA], cvs.height / 2 + points[4][axisB]);
+            ctx.lineTo(cvs.width / 2 + points[5][axisA], cvs.height / 2 + points[5][axisB]);
+            ctx.lineTo(cvs.width / 2 + points[7][axisA], cvs.height / 2 + points[7][axisB]);
+            ctx.lineTo(cvs.width / 2 + points[6][axisA], cvs.height / 2 + points[6][axisB]);
+            ctx.lineTo(cvs.width / 2 + points[4][axisA], cvs.height / 2 + points[4][axisB]);
+            ctx.moveTo(cvs.width / 2 + points[5][axisA], cvs.height / 2 + points[5][axisB]);
+            ctx.lineTo(cvs.width / 2 + points[1][axisA], cvs.height / 2 + points[1][axisB]);
+            ctx.moveTo(cvs.width / 2 + points[6][axisA], cvs.height / 2 + points[6][axisB]);
+            ctx.lineTo(cvs.width / 2 + points[2][axisA], cvs.height / 2 + points[2][axisB]);
+            ctx.moveTo(cvs.width / 2 + points[7][axisA], cvs.height / 2 + points[7][axisB]);
+            ctx.lineTo(cvs.width / 2 + points[3][axisA], cvs.height / 2 + points[3][axisB]);
             ctx.stroke();
 
             
@@ -121,12 +108,12 @@ class Cube {
         if (params.drawFaces) {
 
 
-            let faceFront = [this.points[0], this.points[1], this.points[3], this.points[2]];
-            let faceBack = [this.points[5], this.points[4], this.points[6], this.points[7]];
-            let faceLeft = [this.points[4], this.points[0], this.points[2], this.points[6]];
-            let faceRight = [this.points[1], this.points[5], this.points[7], this.points[3]];
-            let faceTop = [this.points[0], this.points[4], this.points[5], this.points[1]];
-            let faceBottom = [this.points[2], this.points[3], this.points[7], this.points[6]];
+            let faceFront = [points[0], points[1], points[3], points[2]];
+            let faceBack = [points[5], points[4], points[6], points[7]];
+            let faceLeft = [points[4], points[0], points[2], points[6]];
+            let faceRight = [points[1], points[5], points[7], points[3]];
+            let faceTop = [points[0], points[4], points[5], points[1]];
+            let faceBottom = [points[2], points[3], points[7], points[6]];
 
             let axes = ["x", "y", "z"];
             var axisC = axes.filter(function(e) { return e !== axisA && e !== axisB})[0];
@@ -138,10 +125,10 @@ class Cube {
                 
                 ctx.fillStyle = "red";
                 ctx.beginPath();
-                ctx.moveTo(cvs.width / 2 + this.points[0][axisA], cvs.height / 2 + this.points[0][axisB]);
-                ctx.lineTo(cvs.width / 2 + this.points[1][axisA], cvs.height / 2 + this.points[1][axisB]);
-                ctx.lineTo(cvs.width / 2 + this.points[3][axisA], cvs.height / 2 + this.points[3][axisB]);
-                ctx.lineTo(cvs.width / 2 + this.points[2][axisA], cvs.height / 2 + this.points[2][axisB]);
+                ctx.moveTo(cvs.width / 2 + points[0][axisA], cvs.height / 2 + points[0][axisB]);
+                ctx.lineTo(cvs.width / 2 + points[1][axisA], cvs.height / 2 + points[1][axisB]);
+                ctx.lineTo(cvs.width / 2 + points[3][axisA], cvs.height / 2 + points[3][axisB]);
+                ctx.lineTo(cvs.width / 2 + points[2][axisA], cvs.height / 2 + points[2][axisB]);
                 ctx.fill();
             }
 
@@ -149,10 +136,10 @@ class Cube {
                 // left face
                 ctx.fillStyle = "yellow";
                 ctx.beginPath();
-                ctx.moveTo(cvs.width / 2 + this.points[0][axisA], cvs.height / 2 + this.points[0][axisB]);
-                ctx.lineTo(cvs.width / 2 + this.points[4][axisA], cvs.height / 2 + this.points[4][axisB]);
-                ctx.lineTo(cvs.width / 2 + this.points[6][axisA], cvs.height / 2 + this.points[6][axisB]);
-                ctx.lineTo(cvs.width / 2 + this.points[2][axisA], cvs.height / 2 + this.points[2][axisB]);
+                ctx.moveTo(cvs.width / 2 + points[0][axisA], cvs.height / 2 + points[0][axisB]);
+                ctx.lineTo(cvs.width / 2 + points[4][axisA], cvs.height / 2 + points[4][axisB]);
+                ctx.lineTo(cvs.width / 2 + points[6][axisA], cvs.height / 2 + points[6][axisB]);
+                ctx.lineTo(cvs.width / 2 + points[2][axisA], cvs.height / 2 + points[2][axisB]);
                 ctx.fill();
             }
 
@@ -160,10 +147,10 @@ class Cube {
                 // top face
                 ctx.fillStyle = "blue";
                 ctx.beginPath();
-                ctx.moveTo(cvs.width / 2 + this.points[0][axisA], cvs.height / 2 + this.points[0][axisB]);
-                ctx.lineTo(cvs.width / 2 + this.points[1][axisA], cvs.height / 2 + this.points[1][axisB]);
-                ctx.lineTo(cvs.width / 2 + this.points[5][axisA], cvs.height / 2 + this.points[5][axisB]);
-                ctx.lineTo(cvs.width / 2 + this.points[4][axisA], cvs.height / 2 + this.points[4][axisB]);
+                ctx.moveTo(cvs.width / 2 + points[0][axisA], cvs.height / 2 + points[0][axisB]);
+                ctx.lineTo(cvs.width / 2 + points[1][axisA], cvs.height / 2 + points[1][axisB]);
+                ctx.lineTo(cvs.width / 2 + points[5][axisA], cvs.height / 2 + points[5][axisB]);
+                ctx.lineTo(cvs.width / 2 + points[4][axisA], cvs.height / 2 + points[4][axisB]);
                 ctx.fill();
             }
 
@@ -171,10 +158,10 @@ class Cube {
                 // right face
                 ctx.fillStyle = "purple";
                 ctx.beginPath();
-                ctx.moveTo(cvs.width / 2 + this.points[1][axisA], cvs.height / 2 + this.points[1][axisB]);
-                ctx.lineTo(cvs.width / 2 + this.points[3][axisA], cvs.height / 2 + this.points[3][axisB]);
-                ctx.lineTo(cvs.width / 2 + this.points[7][axisA], cvs.height / 2 + this.points[7][axisB]);
-                ctx.lineTo(cvs.width / 2 + this.points[5][axisA], cvs.height / 2 + this.points[5][axisB]);
+                ctx.moveTo(cvs.width / 2 + points[1][axisA], cvs.height / 2 + points[1][axisB]);
+                ctx.lineTo(cvs.width / 2 + points[3][axisA], cvs.height / 2 + points[3][axisB]);
+                ctx.lineTo(cvs.width / 2 + points[7][axisA], cvs.height / 2 + points[7][axisB]);
+                ctx.lineTo(cvs.width / 2 + points[5][axisA], cvs.height / 2 + points[5][axisB]);
                 ctx.fill();
             }
 
@@ -182,10 +169,10 @@ class Cube {
                 // bottom face
                 ctx.fillStyle = "orange";
                 ctx.beginPath();
-                ctx.moveTo(cvs.width / 2 + this.points[2][axisA], cvs.height / 2 + this.points[2][axisB]);
-                ctx.lineTo(cvs.width / 2 + this.points[3][axisA], cvs.height / 2 + this.points[3][axisB]);
-                ctx.lineTo(cvs.width / 2 + this.points[7][axisA], cvs.height / 2 + this.points[7][axisB]);
-                ctx.lineTo(cvs.width / 2 + this.points[6][axisA], cvs.height / 2 + this.points[6][axisB]);
+                ctx.moveTo(cvs.width / 2 + points[2][axisA], cvs.height / 2 + points[2][axisB]);
+                ctx.lineTo(cvs.width / 2 + points[3][axisA], cvs.height / 2 + points[3][axisB]);
+                ctx.lineTo(cvs.width / 2 + points[7][axisA], cvs.height / 2 + points[7][axisB]);
+                ctx.lineTo(cvs.width / 2 + points[6][axisA], cvs.height / 2 + points[6][axisB]);
                 ctx.fill();
             }
 
@@ -193,10 +180,10 @@ class Cube {
                 // back face
                 ctx.fillStyle = "green";
                 ctx.beginPath();
-                ctx.moveTo(cvs.width / 2 + this.points[4][axisA], cvs.height / 2 + this.points[4][axisB]);
-                ctx.lineTo(cvs.width / 2 + this.points[5][axisA], cvs.height / 2 + this.points[5][axisB]);
-                ctx.lineTo(cvs.width / 2 + this.points[7][axisA], cvs.height / 2 + this.points[7][axisB]);
-                ctx.lineTo(cvs.width / 2 + this.points[6][axisA], cvs.height / 2 + this.points[6][axisB]);
+                ctx.moveTo(cvs.width / 2 + points[4][axisA], cvs.height / 2 + points[4][axisB]);
+                ctx.lineTo(cvs.width / 2 + points[5][axisA], cvs.height / 2 + points[5][axisB]);
+                ctx.lineTo(cvs.width / 2 + points[7][axisA], cvs.height / 2 + points[7][axisB]);
+                ctx.lineTo(cvs.width / 2 + points[6][axisA], cvs.height / 2 + points[6][axisB]);
                 ctx.fill();
             }
             ctx.globalAlpha = 1;
@@ -211,17 +198,11 @@ class Cube {
 
     drawPerspective(ctx, cvs, camera, axisA, axisB, params) {
 
-        var grd = ctx.createLinearGradient(0, 0, 0, cvs.width);
-
-        grd.addColorStop(0.25, "white");
-        grd.addColorStop(1, "#505060");
-
-        ctx.fillStyle = grd;
-        ctx.fillRect(0, 0, cvs.width, cvs.height);
+        
         ctx.fillStyle = "black";
 
         let perspectivePoints = [];
-        this.points.forEach((point, key) => {
+        this._getPoints().forEach((point, key) => {
             perspectivePoints[key] = camera.getPerspectivePoint(point);
         });
 
